@@ -15,7 +15,7 @@ def box_contains(box, lon, lat):
 
 class MyStreamListener(tweepy.StreamListener):
 
-    def __init__(self, locations, *args, **kwargs):
+    def __init__(self, locations=None, *args, **kwargs):
         self.start_time = datetime.datetime.now()
         self.tweets = []
         self.coordinate_filtered_tweets = []
@@ -32,19 +32,20 @@ class MyStreamListener(tweepy.StreamListener):
     def on_status(self, status):
         self.tweets.append(status)
         self.count += 1
-        coordinate_pairs = status.place.bounding_box.coordinates[0]
-        pair_in_box = True
-        for coordinate_pair in coordinate_pairs:
-            pair_in_box = box_contains(self.box, *coordinate_pair)
+        if self.box:
+            coordinate_pairs = status.place.bounding_box.coordinates[0]
+            pair_in_box = True
+            for coordinate_pair in coordinate_pairs:
+                pair_in_box = box_contains(self.box, *coordinate_pair)
+                if not pair_in_box:
+                    print('pair outside box')
+                    print(coordinate_pair)
+                    print(self.box)
+                    print(status.place.full_name)
+                    self.placetags_outside_bounding_box += 1
+                    break
             if not pair_in_box:
-                print('pair outside box')
-                print(coordinate_pair)
-                print(self.box)
-                print(status.place.full_name)
-                self.placetags_outside_bounding_box += 1
-                break
-        if not pair_in_box:
-            return
+                return
         self.coordinate_filtered_tweets.append(status)
         
         if status.geo:
@@ -121,7 +122,7 @@ class MyStreamListener(tweepy.StreamListener):
                 myStreamListener = MyStreamListener(locations)
                 myStream = tweepy.Stream(auth = api.auth, listener=myStreamListener)
                 myStream.filter(locations=locations)""")
-            outlines.append('Full code at https://')
+            outlines.append('Full code at https://github.com/nickmvincent/twitter_explore')
         elif part == 2:
             outlines.append('The keyword was {}'.format(keyword))
             outlines.append('Question 1')
@@ -134,12 +135,16 @@ class MyStreamListener(tweepy.StreamListener):
                 percent_user_location, keyword
             ))
             for tweet in self.coordinate_filtered_tweets[:50]:
-                outlines.append(tweet.user.location)
+                if tweet.user.location:
+                    outlines.append(tweet.user.location)
+        
+
         filename = 'part{}'.format(part)
         if keyword:
             filename += '_keyword_{}'.format(keyword)
-        datasetname = filename + '_dataset.txt'
+        datasetname = filename + '_dataset.p'
         filename += '_output.txt'
+        print(outlines)
         with open(filename, 'w') as outfile:
             outstr = '\n'.join(outlines)
             outfile.write(outstr)
@@ -148,7 +153,7 @@ class MyStreamListener(tweepy.StreamListener):
         
 
             
-DURATION = 10
+DURATION = 600
 def main():
     auth = tweepy.OAuthHandler(os.environ['twitter_consumer_key'], os.environ['twitter_consumer_secret'])
     auth.set_access_token(os.environ['twitter_access_token_key'], os.environ['twitter_access_token_secret'])
@@ -172,14 +177,15 @@ def main():
 
     keywords = ['NFL', 'Trump', 'Hurricane']
     for keyword in keywords:
-        stream_listener = MyStreamListener(locations)
+        stream_listener = MyStreamListener()
         my_stream = tweepy.Stream(auth = api.auth, listener=stream_listener)
-        my_stream.filter(track=[keyword], locations=locations, async=True)
+        my_stream.filter(track=[keyword], async=True)
         start = time.time()
         while True:
-            if time.time() - start > DURATION:
+            time_elapsed = time.time() - start
+            if time_elapsed > DURATION:
                 my_stream.disconnect()
-                myStream.output(2, keyword)
+                stream_listener.output(2, keyword)
                 break
 
 
