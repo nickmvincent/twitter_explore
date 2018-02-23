@@ -102,7 +102,7 @@ class Listener(tweepy.StreamListener):
             english_percent
         ))
         outlines.append('Full code at https://github.com/nickmvincent/twitter_explore')
-        filename = datetime.datetime.now() + '_output'
+        filename = str(out_time) + '_output'
         with open(filename + '.txt', 'wb') as outfile:
             outstr = '\n'.join(outlines).encode('utf8')
             outfile.write(outstr)
