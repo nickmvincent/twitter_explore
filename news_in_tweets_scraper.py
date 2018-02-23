@@ -108,7 +108,7 @@ class Listener(tweepy.StreamListener):
             outfile.write(outstr)
         pickle.dump(self.coordinate_filtered_tweets, open(filename + '.p', "wb" ) )
         with open(filename + '.json', 'w') as fp:
-            json.dump(self.coordinate_filtered_tweets, fp)
+            json.dump([x._json for x in self.coordinate_filtered_tweets], fp)
 
         
 
