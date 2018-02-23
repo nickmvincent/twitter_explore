@@ -5,6 +5,7 @@ import time
 from collections import defaultdict
 import operator
 import pickle
+import json
 
 def box_contains(box, lon, lat):
     """check if a box contains point (lon,lat)"""
@@ -13,7 +14,7 @@ def box_contains(box, lon, lat):
     return lon_inside and lat_inside
 
 
-class MyStreamListener(tweepy.StreamListener):
+class Listener(tweepy.StreamListener):
 
     def __init__(self, locations=None, *args, **kwargs):
         self.start_time = datetime.datetime.now()
@@ -104,19 +105,18 @@ class MyStreamListener(tweepy.StreamListener):
             english_percent
         ))
         outlines.append('Full code at https://github.com/nickmvincent/twitter_explore')
-
-        datasetname = filename + '_dataset.p'
-        filename += '_output.txt'
-        with open(filename, 'wb') as outfile:
+        filename = datetime.now() + '_output'
+        with open(filename + '.txt', 'wb') as outfile:
             outstr = '\n'.join(outlines).encode('utf8')
-            print(outstr)
             outfile.write(outstr)
-        pickle.dump(self.coordinate_filtered_tweets, open(datasetname, "wb" ) )
+        pickle.dump(self.coordinate_filtered_tweets, open(filename + '.p', "wb" ) )
+        with open(filename + '.json', 'w') as fp:
+            json.dump(self.coordinate_filtered_tweets, fp)
 
         
 
 SEC_PER_MINS = 60
-MINS_TO_RUN = 60
+MINS_TO_RUN = 5
 DURATION = MINS_TO_RUN * SEC_PER_MINS
 def main():
     auth = tweepy.OAuthHandler(os.environ['twitter_consumer_key'], os.environ['twitter_consumer_secret'])
@@ -128,7 +128,7 @@ def main():
     long2 = -87.42
     lat2 = 42.48
     locations=[long1, lat1, long2, lat2]
-    stream_listener = MyStreamListener(locations)
+    stream_listener = Listener(locations)
     my_stream = tweepy.Stream(auth = api.auth, listener=stream_listener)
     my_stream.filter(locations=locations, async=True)
     start = time.time()
