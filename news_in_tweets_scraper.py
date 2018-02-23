@@ -79,12 +79,11 @@ class Listener(tweepy.StreamListener):
         outlines.append('Tweet collection started at {}'.format(self.start_time))
         outlines.append('This report was generated at {}'.format(out_time))
 
-        outlines.append('Summary')
         minutes = round(duration.total_seconds() / 60, 1)
         outlines.append('Over a {} minute period, {}* geographically tweets were collected, for a rate of {} geographically referenced tweets per minute'.format(
             minutes, count, count / minutes
         ))
-        outlines.append('*this include placetagged tweets with coordinates outside the bounding box, which were filtered out for all other metrics')
+        outlines.append('*this includes placetagged tweets with coordinates outside the bounding box, which were filtered out for all other metrics')
         percent_geo = self.geotag_count / filtered_count * 100
         outlines.append('{} percent of filtered tweets had geotags and {} percent of filtered tweets had placetags'.format(
             percent_geo, percent_place
@@ -92,7 +91,6 @@ class Listener(tweepy.StreamListener):
         outlines.append('{} total tweets actually had a placetag with coordinates outside the bounding box!'.format(
             self.placetags_outside_bounding_box
         ))
-        outlines.append('These tweets were filtered by checking if any coordinates associated with the placetag box were outside of the bounding box')
         sorted_hashtags = sorted(self.hashtag_frequency.items(), key=operator.itemgetter(1))
         if sorted_hashtags:
             outlines.append('The most popular hashtag in this report was {}, which appeared {} times'.format(*sorted_hashtags[-1])
@@ -113,7 +111,7 @@ class Listener(tweepy.StreamListener):
         
 
 SEC_PER_MINS = 60
-MINS_TO_RUN = 1
+MINS_TO_RUN = 60
 DURATION = MINS_TO_RUN * SEC_PER_MINS
 def main():
     auth = tweepy.OAuthHandler(os.environ['twitter_consumer_key'], os.environ['twitter_consumer_secret'])
