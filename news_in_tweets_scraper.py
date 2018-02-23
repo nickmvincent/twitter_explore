@@ -69,7 +69,7 @@ class MyStreamListener(tweepy.StreamListener):
         if status.user.location is not None:
             self.user_location_count += 1
 
-    def output(self, part=1, keyword=None):
+    def output(self, keyword=None):
         print('STARTING OUTPUT')
         out_time = datetime.datetime.now()
         duration = out_time - self.start_time
@@ -78,38 +78,33 @@ class MyStreamListener(tweepy.StreamListener):
         percent_place = self.placetag_count / filtered_count * 100    
 
         outlines = []
-        outlines.append('PART {}'.format(part))
         outlines.append('Tweet collection started at {}'.format(self.start_time))
         outlines.append('This report was generated at {}'.format(out_time))
 
-        if part == 1:
-            outlines.append('Summary')
-            minutes = round(duration.total_seconds() / 60, 1)
-            outlines.append('Over a {} minute period, {}* geographically tweets were collected, for a rate of {} geographically referenced tweets per minute'.format(
-                minutes, count, count / minutes
-            ))
-            outlines.append('*this include placetagged tweets with coordinates outside the bounding box, which were filtered out for all other metrics')
-            percent_geo = self.geotag_count / filtered_count * 100
-            outlines.append('{} percent of filtered tweets had geotags and {} percent of filtered tweets had placetags'.format(
-                percent_geo, percent_place
-            ))
-            outlines.append('{} total tweets actually had a placetag with coordinates outside the bounding box!'.format(
-                self.placetags_outside_bounding_box
-            ))
-            outlines.append('These tweets were filtered by checking if any coordinates associated with the placetag box were outside of the bounding box')
-            sorted_hashtags = sorted(self.hashtag_frequency.items(), key=operator.itemgetter(1))
-            if sorted_hashtags:
-                outlines.append('The most popular hashtag in this report was {}, which appeared {} times'.format(*sorted_hashtags[-1])
-            )
-            english_percent = self.english_count / filtered_count * 100
-            outlines.append('{} percent of tweets came from users with English set as their primary language'.format(
-                english_percent
-            ))
-            outlines.append('Full code at https://github.com/nickmvincent/twitter_explore')
+        outlines.append('Summary')
+        minutes = round(duration.total_seconds() / 60, 1)
+        outlines.append('Over a {} minute period, {}* geographically tweets were collected, for a rate of {} geographically referenced tweets per minute'.format(
+            minutes, count, count / minutes
+        ))
+        outlines.append('*this include placetagged tweets with coordinates outside the bounding box, which were filtered out for all other metrics')
+        percent_geo = self.geotag_count / filtered_count * 100
+        outlines.append('{} percent of filtered tweets had geotags and {} percent of filtered tweets had placetags'.format(
+            percent_geo, percent_place
+        ))
+        outlines.append('{} total tweets actually had a placetag with coordinates outside the bounding box!'.format(
+            self.placetags_outside_bounding_box
+        ))
+        outlines.append('These tweets were filtered by checking if any coordinates associated with the placetag box were outside of the bounding box')
+        sorted_hashtags = sorted(self.hashtag_frequency.items(), key=operator.itemgetter(1))
+        if sorted_hashtags:
+            outlines.append('The most popular hashtag in this report was {}, which appeared {} times'.format(*sorted_hashtags[-1])
+        )
+        english_percent = self.english_count / filtered_count * 100
+        outlines.append('{} percent of tweets came from users with English set as their primary language'.format(
+            english_percent
+        ))
+        outlines.append('Full code at https://github.com/nickmvincent/twitter_explore')
 
-        filename = 'part{}'.format(part)
-        if keyword:
-            filename += '_keyword_{}'.format(keyword)
         datasetname = filename + '_dataset.p'
         filename += '_output.txt'
         with open(filename, 'wb') as outfile:
@@ -120,8 +115,9 @@ class MyStreamListener(tweepy.StreamListener):
 
         
 
-            
-DURATION = 15 * 60
+SEC_PER_MINS = 60
+MINS_TO_RUN = 60
+DURATION = MINS_TO_RUN * SEC_PER_MINS
 def main():
     auth = tweepy.OAuthHandler(os.environ['twitter_consumer_key'], os.environ['twitter_consumer_secret'])
     auth.set_access_token(os.environ['twitter_access_token_key'], os.environ['twitter_access_token_secret'])
@@ -140,7 +136,7 @@ def main():
         time_elapsed = time.time() - start
         if time_elapsed > DURATION:
             my_stream.disconnect()
-            stream_listener.output(1)
+            stream_listener.output()
             break
 
 main()
