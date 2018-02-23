@@ -39,10 +39,9 @@ class Listener(tweepy.StreamListener):
             for coordinate_pair in coordinate_pairs:
                 pair_in_box = box_contains(self.box, *coordinate_pair)
                 if not pair_in_box:
-                    print('pair outside box')
-                    print(status.place.full_name)
-                    
-                    print(coordinate_pairs)
+                    # print('pair outside box')
+                    # print(status.place.full_name)
+                    # print(coordinate_pairs)
                     longs, lats = [], []
                     for pair in coordinate_pairs:
                         longs.append(pair[0])
@@ -50,8 +49,6 @@ class Listener(tweepy.StreamListener):
                     central_long = sum(longs) / 4
                     central_lat = sum(lats) / 4
                     centroid = (central_long, central_lat)
-                    print('Centroid is: {}'.format(centroid))
-                    print(self.box)
                     self.placetags_outside_bounding_box += 1
                     break
             if not pair_in_box:
@@ -105,7 +102,7 @@ class Listener(tweepy.StreamListener):
             english_percent
         ))
         outlines.append('Full code at https://github.com/nickmvincent/twitter_explore')
-        filename = datetime.now() + '_output'
+        filename = datetime.datetime.now() + '_output'
         with open(filename + '.txt', 'wb') as outfile:
             outstr = '\n'.join(outlines).encode('utf8')
             outfile.write(outstr)
@@ -116,7 +113,7 @@ class Listener(tweepy.StreamListener):
         
 
 SEC_PER_MINS = 60
-MINS_TO_RUN = 5
+MINS_TO_RUN = 1
 DURATION = MINS_TO_RUN * SEC_PER_MINS
 def main():
     auth = tweepy.OAuthHandler(os.environ['twitter_consumer_key'], os.environ['twitter_consumer_secret'])
