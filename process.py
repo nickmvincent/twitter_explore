@@ -9,4 +9,6 @@ def main():
     print(df.columns.values)
     print(df.head(1))
 
+    df[['created_at', 'entities', 'source', 'text']].to_csv('test.csv')
+
 main()
